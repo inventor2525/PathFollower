@@ -1,8 +1,12 @@
-from UnitAlg import Vector3, Quaternion, Transform, Ray, CoordinateFrame
+from UnitAlg import Vector3, Quaternion, Transform, Ray, CoordinateFrame, Circle
 CoordinateFrame.set(CoordinateFrame.ROS)
+
+from typing import Union, List, Tuple
+
 
 import math
 import matplotlib.pyplot as plt
+#import Timer
 import time
 
 #inject the clamp and abs functions into the poorly designed math library
@@ -25,6 +29,10 @@ class Robot():
 		self.velocity = Vector3([0,0,0])
 		self.angular_velocity = 0 #radians per second
 		self.transform = Transform(self.position, Quaternion.from_euler(0,0,self.heading))
+	
+	@property
+	def pose() -> Ray:
+		return Ray(self.position, self.heading)
 	
 	def update(self, dt:float) -> None:
 		#Update the position and heading
@@ -57,6 +65,77 @@ class Robot():
 		
 		#Set the wheel rpms
 		self.set_wheel_rpms(desired_left_rpm, desired_right_rpm)
+	
+	def get_max_speeds_for_arc(self, radius:float) -> (float, float):
+		"""
+		Calculates the maximum speed and angular velocity for a given arc radius,
+		given the max acceleration and max angular acceleration of the robot.
+		
+		Args:
+			radius: The radius of the arc to follow. Positive is clockwise, negative is counter-clockwise.
+		
+		Returns:
+			A tuple containing the maximum speed and angular velocity for the given arc radius.
+		"""
+		#if the radius is very close to 0, return max angular velocity and 0 speed:
+		if math.abs(radius) < 0.0001:
+			return (0, self.max_angular_velocity)
+			
+		#Else, Assume for a moment that the speed is 1
+		speed = 1
+		
+		#Calculate the angular velocity needed to follow the arc
+		angular_velocity = speed / radius
+		
+		#Clamp both the speed and angular velocity to the max values, while maintaining the ratio:
+		ratio = angular_velocity / speed
+		if speed > self.max_velocity:
+			speed = self.max_velocity
+			angular_velocity = speed * ratio
+		if math.abs(angular_velocity) > self.max_angular_velocity:
+			angular_velocity = self.max_angular_velocity
+			speed = angular_velocity / ratio		
+		return (speed, angular_velocity)
+
+def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, float]:
+	"""
+	Calculates the path for the robot to follow from its current pose to the target pose.
+	
+	Args:
+		robot: The current pose of the robot.
+		target: The target pose of the robot.
+	Returns:
+		A tuple containing the center of the first arc, the center of the second arc, and the radius of the arcs.
+	"""
+	
+	#Get the vector from the robot's position to the target ray's origin
+	robot_to_target = target.origin - robot.origin
+	
+	#Calculate the perpendicular direction to the robot's heading and facing towards the target
+	robot_perpendicular = Vector3.cross(robot.direction, Vector3.up)
+	if Vector3.dot(robot_perpendicular, robot_to_target) < 0:
+		robot_perpendicular = -robot_perpendicular
+	
+	#Calculate the perpendicular direction to the target ray and facing towards the robot
+	target_perpendicular = Vector3.cross(target.direction, Vector3.up)
+	if Vector3.dot(target_perpendicular, robot_to_target) > 0:
+		target_perpendicular = -target_perpendicular
+	
+	q, w, _ = target_perpendicular #Tp
+	a, s, _ = robot_perpendicular  #Rp
+	z, x, _ = target.origin        #T
+	d, f, _ = robot.origin         #R
+
+	i = a**2 - 2*a*q + q**2 + s**2 - 2*s*w + w**2-4
+	# if i != 0: -- Will never be a problem because a or s will always be non-zero
+	j = -2*a*d + 2*d*q + 2*a*z - 2*z*q - 2*s*f + 2*f*w + 2*s*x - 2*x*w
+	k = math.sqrt((-j)**2 - 4*i*(d**2 - 2*d*z + z**2 + f**2 - 2*x*f + x**2))
+
+	r = (j - k) / (2*i)
+	if r>=0:
+		return r
+	r = (j + k) / (2*i)
+	return r
 		
 # A path follower for a 2D robot with differential drive
 class PathFollower():
@@ -81,6 +160,17 @@ class PathFollower():
 		
 		self.current_path_segment = None
 		self.current_path_segment_index = 0
+	
+	@staticmethod
+	def get_local_path_plan(robot:Robot, target_ray:Ray) -> Tuple[Circle, Ray, Circle]:
+		"""
+		Find 2 arcs who's radii are equal and that are tangent to eachother, where one arc
+		is tangent to the robot's heading, and the other is tangent to the target ray. The
+		center of the first arc is on the line perpendicular to the robot's heading that
+		passes through the robot's position. The center of the second arc is on the line
+		perpendicular to the target ray that passes through the target ray's origin.
+		"""
+		calc_2arc_joining_path(robot.pose, target_ray)
 	
 	def update(self, dt:float) -> None:
 		#Update the current path segment
@@ -143,6 +233,7 @@ class PathFollower():
 		desired_acceleration = math.clamp(Vector3.distance(desired_velocity, self.robot.velocity), -self.max_acceleration, self.max_acceleration)
 		#Calculate the desired angular acceleration clamped to the maximum angular acceleration
 		desired_angular_acceleration = math.clamp(desired_angular_velocity - self.robot.angular_velocity, -self.max_angular_acceleration, self.max_angular_acceleration)
+		
 		# Set the desired speed and angular velocity
 		self.robot.set_desired_speed(desired_speed, desired_angular_velocity)
 		
@@ -175,6 +266,33 @@ class Plot():
 		plt.pause(0.001)
 
 if __name__ == '__main__':
+	_R = Vector3(10.145619,8.244399,0)
+	R = Vector3(13.0006178,7.489313,0)
+	
+	T = Vector3(19.765736, 3.835348, 0)
+	T_= Vector3(29.998669, 8.076674, 0)
+	
+	calc_2arc_joining_path(
+		Ray(R, (R-_R).normalized()),
+		Ray(T, (T_-T).normalized())
+	) #~3.48
+	
+	_R = Vector3(10,13,0)
+	R = Vector3(16.9578,14,0)
+	
+	T = Vector3(20, 8, 0)
+	T_= Vector3(26, 6, 0)
+	
+	calc_2arc_joining_path(
+		Ray(R, (R-_R).normalized()),
+		Ray(T, (T_-T).normalized())
+	) #~2.00
+	
+	calc_2arc_joining_path(
+		Ray(T, (_R-R).normalized()),
+		Ray(R, (T-T_).normalized())
+	) #~2.00
+	
 	#Create a robot
 	robot = Robot(0,0,0,0.5,0.1)
 	
@@ -190,6 +308,8 @@ if __name__ == '__main__':
 	#Setup the path follower with the robot, path, look ahead distance, max velocity, 
 	# max acceleration, max angular velocity, max angular acceleration
 	path_follower = PathFollower(robot, path, 0.1, 0.5,0.5, 1.5,40)
+	
+	#path_follower.get_local_path_plan(robot, Ray(Vector3(1,1,0), Vector3(1,.2,0).normalized()))
 	
 	#Create a plot
 	plot = Plot()

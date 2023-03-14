@@ -1,0 +1,159 @@
+#Equation notes for following a curved path composed of 2 tangent arcs toward a target. This was the effort that went into finding the radius of those arcs
+~2023-03-11 to 2023-03-13 -- Theres a cad file to play with too
+
+#Note: All multiplies are explicet (A*B is not to be writen as AB)
+r = radius
+
+#Directions
+Rp = Robot Perpendicular
+Tp = Target direction perpendicular
+
+#Points
+R = Robot Point
+M = "Mid" Point
+T = Target Point
+Rc = Robot side circle center
+Tc = Target side circle
+
+#Triangles
+ΔRMRc
+ΔTMTc
+ΔRcMTc
+
+#Notes
+u0394 = Δ
+u2220 = ∠
+#Knowns
+R, T, Rp, Tp
+|T-R| > 0
+Rp = (Rc-R) / r
+Tp = (Tc-T) / r
+|Tp| = |Rp| = 1
+r = |R-Rc| = |Rc-M| = |Tc-M| = |T-Tc|
+∠MTcTcT = ∠MRcRcR - ∠RRcTcT
+Rc = r*Rp+R
+Tc = r*Tp+T
+M = (Rc+Tc)/2
+
+#Calculations:
+Ra = ∠RcRM = 2pi - ∠MRcRcR
+Ta = ∠TcTM = 2pi - ∠MTcTcT
+Ma = ∠MTR 
+
+#Law of cosines: c^2 = a^2 + b^2 - 2ab*cos(C)
+|M-R| = sqrt(2r^2 - 2*r^2*cos(Ra))
+|M-T| = sqrt(2r^2 - 2*r^2*cos(Ta))
+|T-R| = sqrt(|M-R|^2 + |M-T|^2 - 2*|M-R|*|M-T|*cos(Ma))
+
+#Newer calculations (not tested):
+#Solve for Ma by using fact that ∠MTR = ∠RcRM + ∠TcTM (is likely wrong but I wanted to evaluate it)
+
+#Simplifications:
+|M-R|^2 = 2r^2 - 2*r^2*cos(Ra)
+|M-T|^2 = 2r^2 - 2*r^2*cos(Ta)
+|T-R|^2 = |M-R|^2 + |M-T|^2 - 2*|M-R|*|M-T|*cos(Ma)
+
+#Substitutions:
+RcM = M - r*Rp+R
+RcR = R - r*Rp+R = -r*Rp
+TcM = M - r*Tp+T
+TcT = T - r*Tp+T = -r*Tp
+
+M = (r*Rp+R + r*Tp+T)/2
+RcM = (r*Rp+R + r*Tp+T)/2 - r*Rp+R
+Ra = ∠RcRM = acos(MRc*)
+|T-R|^2 = (2r^2 - 2*r^2*cos(Ra)) + (2r^2 - 2*r^2*cos(Ta))
+	- 2*sqrt(2r^2 - 2*r^2*cos(Ra))*sqrt(2r^2 - 2*r^2*cos(Ta))*cos(Ma)
+
+
+
+
+
+
+# I know M in pure terms of T, Tp, R, Rp and r
+
+# if I knew RM I would have r
+
+# if a turn arround is needed, this math is pointless, in that case it is a single arc and a line
+
+
+M = (Rc+Tc)/2
+=> M = (r*Rp+R + r*Tp+T)/2
+|M-Rc| = r
+=> |(r*Rp+R + r*Tp+T)/2 - r*Rp+R| = r
+=> |(r*Tp+T - (r*Rp+R))/2| = r
+=> |(r*Tp + T - r*Rp - R)/2| = r
+=> |(r*Tp - r*Rp + T - R)/2| = r
+=> |(r*(Tp - Rp) + T - R)/2| = r
+
+
+=> |(r*(Tp - Rp) + T - R)/2|^2 = r^2
+=> r^2 = ((r*(Tp - Rp) + T - R)/2)^2   +   ((r*(Tp - Rp) + T - R)/2)^2;
+=> r^2 = ((r*(q -  a)  + z - d)/2)^2   +   ((r*(w  - s)  + x - f)/2)^2;
+    where Tp=(q,w) Rp=(a,s) T=(z,x) R=(d,f)
+	
+	
+#wolfram:
+r = (d^2 - 2 d z + f^2 - 2 f x + x^2 + z^2)/(2 (d sqrt(-s^2 + 2 s w - w^2 + 4) - f s + f w - z sqrt(-s^2 + 2 s w - w^2 + 4) + s x - w x))
+
+a = q - sqrt(-s^2 + 2 s w - w^2 + 4)
+d (-sqrt(-s^2 + 2 s w - w^2 + 4)) + f s - f w + z sqrt(-s^2 + 2 s w - w^2 + 4) - s x + w x!=0
+
+=>
+
+S = sqrt(-s^2 + 2 s w - w^2 + 4)
+r = (d^2 - 2*d*z + f^2 - 2*f*x + x^2 + z^2) / (2 (d*S - f*s + f*w - z*S + s*x - w*x))
+a = q - S
+d (-S) + f s - f w + z S - s x + w x!=0
+
+
+#or
+r^2 = d^2/4 + (a d r)/2 - (d q r)/2 + (a^2 r^2)/4 - (a q r^2)/2 + (q^2 r^2)/4 - (d z)/2 - (a r z)/2 + (q r z)/2 + z^2/4     +
+f^2/4 + (f r s)/2 + (r^2 s^2)/4 - (f r w)/2 - (r^2 s w)/2 + (r^2 w^2)/4 - (f x)/2 - (r s x)/2 + (r w x)/2 + x^2/4
+
+
+=> 4*r^2 = d^2 + 2(a d r) - 2(d q r) + (a^2 r^2) - 2(a q r^2) + (q^2 r^2) - 2(d z) - 2(a r z) + 2(q r z) + z^2     +
+f^2 + 2(f r s) + (r^2 s^2) - 2(f r w) - 2(r^2 s w) + (r^2 w^2) - 2(f x) - 2(r s x) + 2(r w x) + x^2
+
+#just sorting out the terms with r and those without
+=> 4*r^2 = 2(a d r) - 2(d q r) + (a^2 r^2) - 2(a q r^2) + (q^2 r^2) - 2(a r z) + 2(q r z) + 2(f r s) + (r^2 s^2) - 2(f r w) - 2(r^2 s w) + (r^2 w^2) - 2(r s x) + 2(r w x)
++ d^2 - 2(d z) + z^2 + f^2 - 2(f x) + x^2
+
+
+#Solving for r (https://www.symbolab.com/solver/solve-for-equation-calculator/solve%20for%20r%2C%204%5Ccdot%20r%5E%7B2%7D%3D2%5Cleft(a%5Ccdot%20d%5Ccdot%20r%5Cright)-2%5Cleft(d%5Ccdot%20q%5Ccdot%20r%5Cright)%2B%5Cleft(a%5E%7B2%7D%5Ccdot%20r%5E%7B2%7D%5Cright)-2%5Cleft(a%5Ccdot%20q%5Ccdot%20r%5E%7B2%7D%5Cright)%2B%5Cleft(q%5E%7B2%7D%5Ccdot%20r%5E%7B2%7D%5Cright)-2%5Cleft(a%5Ccdot%20r%5Ccdot%20z%5Cright)%2B2%5Cleft(q%5Ccdot%20r%5Ccdot%20z%5Cright)%2B2%5Cleft(f%5Ccdot%20r%5Ccdot%20s%5Cright)%2B%5Cleft(r%5E%7B2%7D%5Ccdot%20s%5E%7B2%7D%5Cright)-2%5Cleft(f%5Ccdot%20r%5Ccdot%20w%5Cright)-2%5Cleft(r%5E%7B2%7D%5Ccdot%20s%5Ccdot%20w%5Cright)%2B%5Cleft(r%5E%7B2%7D%5Ccdot%20w%5E%7B2%7D%5Cright)-2%5Cleft(r%5Ccdot%20s%5Ccdot%20x%5Cright)%2B2%5Cleft(r%5Ccdot%20w%5Ccdot%20x%5Cright)%2Bd%5E%7B2%7D-2%5Cleft(d%5Ccdot%20z%5Cright)%2Bz%5E%7B2%7D%2Bf%5E%7B2%7D-2%5Cleft(f%5Ccdot%20x%5Cright)%2Bx%5E%7B2%7D?or=input):
+
+r=-2ad+2dq+2az-2zq-2sf+2fw+2sx-2xw + sqrt((2ad-2dq-2az+2zq+2sf-2fw-2sx+2xw)^2 - 4(a^2-2aq+q^2+s^2-2sw+w^2-4)*(d^2-2dz+z^2+f^2-2xf+x^2))   /   2(a^2-2aq+q^2+s^2-2sw+w^2-4)
+r=-2ad+2dq+2az-2zq-2sf+2fw+2sx-2xw - sqrt((2ad-2dq-2az+2zq+2sf-2fw-2sx+2xw)^2 - 4(a^2-2aq+q^2+s^2-2sw+w^2-4)*(d^2-2dz+z^2+f^2-2xf+x^2))   /   2(a^2-2aq+q^2+s^2-2sw+w^2-4)
+
+a^2-2aq+q^2+s^2-2sw+w^2-4 != 0
+
+
+
+=>
+
+i = -2ad+2dq+2az-2zq-2sf+2fw+2sx-2xw
+j = a^2-2aq+q^2+s^2-2sw+w^2-4
+k = (-i)^2 - 4*j*(d^2-2dz+z^2+f^2-2xf+x^2)
+
+r=i + sqrt(k)   /   2j
+r=i - sqrt(k)   /   2j
+
+j != 0
+
+
+
+
+
+
+q, w, _ = Tp
+a, s, _ = Rp
+z, x, _ = T
+d, f, _ = R
+
+i = a^2 - 2*a*q + q^2 + s^2 - 2*s*w + w^2-4
+if i not 0:
+	j = -2*a*d + 2*d*q + 2*a*z - 2*z*q - 2*s*f + 2*f*w + 2*s*x - 2*x*w
+	k = sqrt((-j)^2 - 4*i*(d^2 - 2*d*z + z^2 + f^2 - 2*x*f + x^2))
+
+	r = (j + k) / (2*i)
+	r = (j - k) / (2*i)
