@@ -381,8 +381,8 @@ class Plot():
 		self.figure = plt.figure()
 		self.axes = self.figure.add_subplot(111)
 		self.axes.set_aspect('equal')
-		self.axes.set_xlim(-1, 1)
-		self.axes.set_ylim(-1, 1)
+		self.axes.set_xlim(-.1, 1.5)
+		self.axes.set_ylim(-.1, 1.5)
 		self.axes.grid()
 	def add_line(self, name:str, x_label:str, y_label:str) -> None:
 		self.lines.append({"name":name, "x_label":x_label, "y_label":y_label, "x_data":[], "y_data":[]})
@@ -397,9 +397,13 @@ class Plot():
 				line["x_data"] = x_data
 				line["y_data"] = y_data
 	def update(self) -> None:
+		x_limits = self.axes.get_xlim()
+		y_limits = self.axes.get_ylim()
+		
 		self.axes.clear()
-		self.axes.set_xlim(-.1, 1.5)
-		self.axes.set_ylim(-.1, 1.5)
+		self.axes.set_xlim(*x_limits)
+		self.axes.set_ylim(*y_limits)
+		
 		self.axes.grid()
 		for line in self.lines:
 			self.axes.plot(line["x_data"], line["y_data"], label=line["name"])
@@ -407,6 +411,13 @@ class Plot():
 		plt.pause(0.001)
 
 if __name__ == '__main__':
+	
+	# lp = TwoArcLocalPlan(Ray(Vector3(0,0,0), Vector3(1,0,0)), Ray(Vector3(1,1,0), Vector3(1,0,0)))
+	
+	# points = []
+	# for i in np.arange(0, 1, 0.1):
+	# 	points.append(lp.get_point_t(i))
+		
 	_R = Vector3(10.145619,8.244399,0)
 	R = Vector3(13.0006178,7.489313,0)
 	
@@ -449,6 +460,7 @@ if __name__ == '__main__':
 	path.append(Vector3(1,1,0))
 	path.append(Vector3(0,1,0))
 	path.append(Vector3(0,0,0))
+	# plot.set_data("Local Plan", [p.x for p in points], [p.y for p in points])
 	
 	#Create a path follower
 	#Setup the path follower with the robot, path, look ahead distance, max velocity, 
@@ -467,7 +479,7 @@ if __name__ == '__main__':
 	#plot.add_line("Robot Heading", "x", "y")
 	#plot.add_line("Robot Angular Velocity", "x", "y")
 	
-	dt = 0.01
+	dt = 0.1
 	#Run the simulation
 	while True:
 		#Update the robot
