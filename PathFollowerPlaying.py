@@ -236,6 +236,9 @@ class TwoArcLocalPlan(LocalPlan):
 	"""
 	def __init__(self, robot:Ray, target:Ray):
 		super().__init__()
+		self.R = robot.origin
+		self.T = target.origin
+		
 		#Calculate the radius of the arcs and the directions to the centers of the arcs
 		self.Rp, self.Tp, r = calc_2arc_joining_path(robot, target)
 		
@@ -277,9 +280,15 @@ class TwoArcLocalPlan(LocalPlan):
 		"""
 		dist = t*self.total_distance
 		if dist <= self.distance1:
-			return Quaternion.from_angle_axis(dist/self.distance1*360, Vector3.up if self.radius1>=0 else Vector3.down) * -self.Rp  + self.Rc
+			return Quaternion.from_angle_axis(
+				dist/self.distance1*self.sweep1,
+				Vector3.up if self.radius1<=0 else Vector3.down
+			) * (self.R-self.Rc) + self.Rc
 		else:
-			return Quaternion.from_angle_axis((dist-self.distance1)/self.distance2*360, Vector3.up if self.radius2>=0 else Vector3.down) * -self.Tp  + self.Tc
+			return Quaternion.from_angle_axis(
+				self.sweep2-(dist-self.distance1)/self.distance2*self.sweep2,
+				Vector3.up if self.radius2>=0 else Vector3.down
+			) * (self.T-self.Tc) + self.Tc
 	
 	#get distance along arc 1:
 	def get_arc1_distance(self, point:Vector3) -> float:
