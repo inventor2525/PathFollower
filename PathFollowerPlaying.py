@@ -161,14 +161,18 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	#Get the vector from the robot's position to the target ray's origin
 	robot_to_target = target.origin - robot.origin
 	
-	#Calculate a perpendicular direction to the robot's heading that faces the target
+	#Calculate a perpendicular direction to the robot's heading
 	robot_perpendicular = Vector3.cross(robot.direction, Vector3.up)
-	if Vector3.dot(robot_perpendicular, robot_to_target) < 0:
-		robot_perpendicular = -robot_perpendicular
 	
-	#Calculate a perpendicular direction to the target ray that faces the robot
+	#Calculate a perpendicular direction to the target ray
 	target_perpendicular = Vector3.cross(target.direction, Vector3.up)
-	if Vector3.dot(target_perpendicular, robot_to_target) > 0:
+	
+	#Flip them such that the one furthest from their intersection turns away from the other
+	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
+	
+	if Vector3.sq_distance(robot.origin, p_i) > Vector3.sq_distance(target.origin, p_i):
+		robot_perpendicular = -robot_perpendicular
+	else:
 		target_perpendicular = -target_perpendicular
 	
 	q, w, _ = target_perpendicular #Tp
@@ -177,7 +181,10 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	d, f, _ = robot.origin         #R
 
 	i = a**2 - 2*a*q + q**2 + s**2 - 2*s*w + w**2-4
-	# if i != 0: -- Will never be a problem because a or s will always be non-zero
+	if abs(i) < 0.0001:
+		#The turning radius is infinite, so just go straight to the target
+		return robot_perpendicular, target_perpendicular, 100000 #100km radius
+	
 	j = -2*a*d + 2*d*q + 2*a*z - 2*z*q - 2*s*f + 2*f*w + 2*s*x - 2*x*w
 	k = math.sqrt((-j)**2 - 4*i*(d**2 - 2*d*z + z**2 + f**2 - 2*x*f + x**2))
 
@@ -247,7 +254,7 @@ class TwoArcLocalPlan(LocalPlan):
 		self.distance1 = self.sweep1 * circomference / (2*math.pi)
 		
 		#Calculate how far the robot should move along the second arc
-		self.sweep2 = Vector3.angle(self.Tp, (self.M-self.Tc).normalized)
+		self.sweep2 = Vector3.angle(-self.Tp, (self.M-self.Tc).normalized)
 		self.distance2 = self.sweep2 * circomference / (2*math.pi)
 		
 		#Find the signed radii of the arc radii (positive is clockwise, negative is counter-clockwise)
