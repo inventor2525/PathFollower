@@ -171,20 +171,34 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
 	
 	if Vector3.sq_distance(robot.origin, p_i) > Vector3.sq_distance(target.origin, p_i):
-		robot_perpendicular = -robot_perpendicular
-	else:
 		target_perpendicular = -target_perpendicular
+	else:
+		robot_perpendicular = -robot_perpendicular
 	
 	q, w, _ = target_perpendicular #Tp
 	a, s, _ = robot_perpendicular  #Rp
 	z, x, _ = target.origin        #T
 	d, f, _ = robot.origin         #R
-
+	#law of sines is:
+	#A=B, a=b, so: (a/sin(A)) = (c/sin(C))
 	i = a**2 - 2*a*q + q**2 + s**2 - 2*s*w + w**2-4
-	if abs(i) < 0.0001:
-		#The turning radius is infinite, so just go straight to the target
-		return robot_perpendicular, target_perpendicular, 100000 #100km radius
-	
+	if abs(i) < 0.001:
+		#The arcs are parallel, so use a special case calculation using law 
+		#of sines:  (a/sin(A)) = (b/sin(B)) = (c/sin(C)) where A=B, a=b, 
+		#C is the sweep angle of the arc, a is the radius of the arc, and 
+		#c is the distance between robot and target / 2 (otherwise known as
+		#the distance from the robot to the point 'M'):
+		c = robot_to_target.magnitude/2
+		pi_2_A = Vector3.angle(robot.direction, robot_to_target.normalized)
+		if pi_2_A < 0.001:
+			#The robot is already pointing at the target, so just go straight
+			#to the target
+			return robot_perpendicular, target_perpendicular, 100000 #100km radius
+		A = math.pi/2 - pi_2_A
+		C = math.pi - 2*A
+		radius = c*math.sin(A) / math.sin(C)
+		return robot_perpendicular, target_perpendicular, radius
+		
 	j = -2*a*d + 2*d*q + 2*a*z - 2*z*q - 2*s*f + 2*f*w + 2*s*x - 2*x*w
 	k = math.sqrt((-j)**2 - 4*i*(d**2 - 2*d*z + z**2 + f**2 - 2*x*f + x**2))
 
@@ -296,13 +310,19 @@ class TwoArcLocalPlan(LocalPlan):
 	
 	#calculate the average turning radius the robot will have to follow the plan for dt more seconds
 	def get_average_turning_radius(self, speed:float, dt:float) -> float:
-		final_distance = self.current_distance + speed*dt
+		travel_distance = speed*dt
+		final_distance = self.current_distance + travel_distance
 		if final_distance > self.distance1:
 			if self.current_distance > self.distance1:
 				return self.radius2
 			else:
 				#find the weighted average of the two radii based on how far the robot has traveled along the path this frame
-				return (self.radius1*(self.distance1 - self.current_distance) + self.radius2*(final_distance - self.distance1)) / (final_distance - self.current_distance)
+				
+				#tan(pi*(t+0.5)/2) is used because on the range [0,1] it goes from 1 to -1 through an asymptote at 0.5
+				#which is the same as for the radius which flips from positive to negative
+				d1 = self.distance1 - self.current_distance
+				t = d1 / travel_distance #percentage of the distance traveled this frame that was on the first arc
+				return self.radius1 * math.tan(math.pi*(t+0.5)/2)
 		else:
 			return self.radius1
 		
