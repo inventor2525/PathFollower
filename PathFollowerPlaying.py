@@ -163,10 +163,15 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	#Flip them such that the one furthest from their intersection turns away from the other
 	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
 	
-	if Vector3.sq_distance(robot.origin, p_i) > Vector3.sq_distance(target.origin, p_i):
-		target_perpendicular = -target_perpendicular
-	else:
+	if Vector3.dot(p_i - robot.origin, robot_perpendicular) < 0:
 		robot_perpendicular = -robot_perpendicular
+	
+	if Vector3.dot(p_i - target.origin, target_perpendicular) > 0:
+		target_perpendicular = -target_perpendicular
+	
+	if Vector3.angle(robot.direction, target.direction) < 0.001:
+		if Vector3.dot(robot_perpendicular, target_perpendicular) > 0:
+			target_perpendicular = -target_perpendicular
 	
 	q, w, _ = target_perpendicular #Tp
 	a, s, _ = robot_perpendicular  #Rp
