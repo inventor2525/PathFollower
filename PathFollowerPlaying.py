@@ -37,7 +37,7 @@ class Robot():
 		
 		self.left_wheel_rpm = 0
 		self.right_wheel_rpm = 0
-		self.velocity = Vector3([0,0,0])
+		self.speed = 0 #meters per second
 		self.angular_velocity = 0 #radians per second
 		self.transform = Transform(self.position, Quaternion.from_euler(0,0,self.heading))
 		self.set_speed = 0
@@ -49,7 +49,16 @@ class Robot():
 	
 	def update(self, dt:float) -> None:
 		#Update the position and heading
-		self.position += self.velocity * dt
+		#speed/radius = angular velocity
+		if abs(self.angular_velocity)<.0001:
+			self.position += self.speed * dt * self.transform.forward
+		else:
+			#Calculate the radius of the circle
+			radius = self.speed / self.angular_velocity
+			#Calculate the center of the circle
+			center = self.position - self.transform.right * radius
+			#Calculate the new position
+			self.position = center + Quaternion.from_angle_axis(self.angular_velocity * dt, Vector3.up)*(self.position - center)
 		self.heading += self.angular_velocity * dt
 		#Update the transform
 		self.transform = Transform(self.position, Quaternion.from_euler(0,0,self.heading))
@@ -65,7 +74,7 @@ class Robot():
 		self.right_wheel_rpm = right_rpm
 		#Calculate the velocity and angular velocity
 		left_velocity, right_velocity = self.get_wheel_velocities()
-		self.velocity = self.transform.forward* (left_velocity + right_velocity) / 2
+		self.speed = (left_velocity + right_velocity) / 2
 		self.angular_velocity = (right_velocity - left_velocity) / self.wheel_separation
 		
 	def get_wheel_rpms(self) -> (float, float):
