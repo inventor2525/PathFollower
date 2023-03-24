@@ -5,6 +5,7 @@ CoordinateFrame.set(CoordinateFrame.ROS)
 from typing import Union, List, Tuple
 
 import math
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 #import Timer
@@ -519,11 +520,23 @@ if __name__ == '__main__':
 	#Create a path
 	path = []
 	d = 1
-	path.append(Vector3(0,0,0))
-	path.append(Vector3(d,0,0))
-	path.append(Vector3(d,d,0))
-	path.append(Vector3(0,d,0))
-	path.append(Vector3(0,0,0))
+	# path.append(Vector3(0,0,0))
+	# path.append(Vector3(d,0,0))
+	# path.append(Vector3(d,d,0))
+	# path.append(Vector3(0,d,0))
+	# path.append(Vector3(0,0,0))
+	
+	p0 = Vector3(0,0,0)
+	path.append(p0)
+	
+	d0 = Vector3(1,0,0)
+	for i in range(0,100):
+		d1 = Quaternion.from_angle_axis(random.uniform(-math.pi/2,math.pi/2), Vector3.up) * d0
+		d = random.uniform(0.1*d, d)
+		p1 = p0 + d1 * d
+		path.append(p1)
+		p0 = p1
+		d0 = d1
 	# plot.set_data("Local Plan", [p.x for p in points], [p.y for p in points])
 	
 	#Create a path follower
