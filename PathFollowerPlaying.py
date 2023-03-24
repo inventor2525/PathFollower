@@ -454,6 +454,16 @@ if __name__ == '__main__':
 			Vector3(0.0, 1.0, 0.0)
 		)
 	)
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.9099999999996267, -5.867989354413456e-07, 0.0),
+			Vector3(0.999999999999332, -1.1558653557561457e-06, 0.0)
+		), 
+		Ray(
+			Vector3(1.0, 0.10000058679893545, 0.0),
+			Vector3(0.0, 1.0, 0.0)
+		)
+	)
 	points = []
 	for i in np.arange(0, 1, 0.1):
 		points.append(lp.get_point_t(i))
