@@ -1,4 +1,5 @@
 from UnitAlg import Vector3, Quaternion, Transform, Ray, CoordinateFrame, Circle
+from UnitAlg.Range import Range
 CoordinateFrame.set(CoordinateFrame.ROS)
 
 from typing import Union, List, Tuple
@@ -104,53 +105,35 @@ class Robot():
 		Returns:
 			A tuple containing the maximum speed and angular velocity for the given arc radius.
 		"""
-		#if the radius is very close to 0, return max angular velocity and 0 speed:
-		if math.abs(radius) < 0.0001:
-			return (0, self.max_angular_velocity)
-			
-		#Else, Assume for a moment that the speed is 1
-		speed = 1
+		max_delta_speed = self.max_acceleration * dt
+		max_delta_ang_vel = self.max_angular_acceleration * dt
 		
-		#Calculate the angular velocity needed to follow the arc
-		angular_velocity = speed / radius
+		#if the radius is very close to 0, return max angular velocity and 0 speed where possible:
+		if math.abs(radius) < 0.0001:
+			return (
+				max(0, self.set_speed-max_delta_speed),
+				min(self.max_angular_velocity + max_delta_ang_vel, self.max_angular_velocity)
+			)
 		
 		#Get the needed ratio of angular velocity to speed
-		ratio = angular_velocity / speed
+		ratio = (1 / radius) #angular_velocity = speed * ratio
 		
-		#Clamp the speed and angular velocity to the max values
-		if speed > self.max_speed:
-			speed = self.max_speed
-			angular_velocity = speed * ratio
-		if math.abs(angular_velocity) > self.max_angular_velocity:
-			angular_velocity = self.max_angular_velocity
-			speed = angular_velocity / ratio
+		#Get the ranges of speeds and angular velocities that can
+		#be achieved while maintaining the constraints of the robot:
+		speed_range = Range(0, self.max_speed).overlapping(Range.from_center_delta(self.set_speed, max_delta_speed))
+		av_range = Range(-self.max_angular_velocity, self.max_angular_velocity).overlapping(Range.from_center_delta(self.set_angular_velocity, max_delta_ang_vel))
 		
-		#Clamp the speed and angular velocity to the max acceleration and max angular 
-		#acceleration, taking into account the current speed and angular velocity
+		#Convert the ranges to the other variable's units:
+		speed_range_in_av = speed_range * ratio
+		av_range_in_speed = av_range / abs(ratio)
 		
-		#Note: This is a bit of a hack, but it works well enough for now. It doesn't
-		#ensure both the speed and angular velocity are within the max acceleration and
-		#max angular acceleration, but it does ensure speed is, while getting both close.
-		angular_velocity_delta = angular_velocity-self.set_angular_velocity
-		max_angular_velocity_delta = self.max_angular_acceleration * dt
-		if angular_velocity_delta > max_angular_velocity_delta:
-			angular_velocity = self.set_angular_velocity + max_angular_velocity_delta
-			speed = angular_velocity / ratio
-		elif angular_velocity_delta < -max_angular_velocity_delta:
-			angular_velocity = self.set_angular_velocity - max_angular_velocity_delta
-			speed = angular_velocity / ratio
-			
-		speed_delta = speed-self.set_speed
-		max_speed_delta = self.max_acceleration * dt
-		if speed_delta > max_speed_delta:
-			speed = self.set_speed + max_speed_delta
-			angular_velocity = speed * ratio
-		elif speed_delta < -max_speed_delta:
-			speed = self.set_speed - max_speed_delta
-			angular_velocity = speed * ratio
+		#Take advantage of the overlapping functions clamping to the first range regardless
+		#of if the second range overlaps it or not to find speeds that maintain the constraints
+		#as much as possible while still getting close to the desired turn radius:
+		speed = speed_range.overlapping(av_range_in_speed).clamp(self.set_speed+max_delta_speed)
+		a_vel = av_range.overlapping(speed_range_in_av).clamp( speed*ratio )
+		return (speed, a_vel)
 		
-		return (speed, angular_velocity)
-
 def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, float]:
 	"""
 	Finds 2 arcs who's radii are equal and that are tangent to eachother, where one arc
