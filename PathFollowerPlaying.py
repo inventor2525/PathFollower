@@ -163,9 +163,9 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
 	
 	if Vector3.sq_distance(robot.origin, p_i) > Vector3.sq_distance(target.origin, p_i):
-		target_perpendicular = -target_perpendicular
-	else:
 		robot_perpendicular = -robot_perpendicular
+	else:
+		target_perpendicular = -target_perpendicular
 	
 	q, w, _ = target_perpendicular #Tp
 	a, s, _ = robot_perpendicular  #Rp
