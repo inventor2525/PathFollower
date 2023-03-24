@@ -164,9 +164,9 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
 	
 	if Vector3.sq_distance(robot.origin, p_i) > Vector3.sq_distance(target.origin, p_i):
-		robot_perpendicular = -robot_perpendicular
-	else:
 		target_perpendicular = -target_perpendicular
+	else:
+		robot_perpendicular = -robot_perpendicular
 	
 	q, w, _ = target_perpendicular #Tp
 	a, s, _ = robot_perpendicular  #Rp
@@ -441,6 +441,16 @@ if __name__ == '__main__':
 		), 
 		Ray(
 			Vector3(1.0, 0.24833575666316185, 0.0),
+			Vector3(0.0, 1.0, 0.0)
+		)
+	)
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(1.023213764055606, 0.023529924652657047, 0.0),
+			Vector3(0.7316892390990255, 0.6816383626137024, 0.0)
+		), 
+		Ray(
+			Vector3(1.0, 0.12352992465265705, 0.0),
 			Vector3(0.0, 1.0, 0.0)
 		)
 	)
