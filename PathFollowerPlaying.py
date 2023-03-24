@@ -388,11 +388,19 @@ class PathFollower():
 	def update(self, dt:float) -> None:
 		if self.local_plan == None:
 			self.local_plan = self.get_new_local_plan()
+			if self.local_plan == None:
+				self.robot.set_desired_speed(0, 0)
+				return
+				
 		#Check if we need a new local plan:
 		self.local_plan.add_distance(self.robot.set_speed * dt)
 		if self.local_plan.is_done():
 			self.local_plan = self.get_new_local_plan()
 		
+		if self.local_plan == None:
+			self.robot.set_desired_speed(0, 0)
+			return
+			
 		# Get the max speeds for the current local plan
 		radius = self.local_plan.get_average_turning_radius(self.robot.set_speed, dt)
 		speed, angular_velocity = robot.get_max_speeds_for_arc(radius, dt)
@@ -552,10 +560,12 @@ if __name__ == '__main__':
 		#plot.add_data("Robot Heading", robot.position.x + math.cos(robot.heading), robot.position.y + math.sin(robot.heading))
 		#plot.add_data("Robot Angular Velocity", robot.position.x + math.cos(robot.heading + robot.angular_velocity), robot.position.y + math.sin(robot.heading + robot.angular_velocity))
 		local_plan_raster = []
-		for i in np.arange(0, 1, 0.02):
-			local_plan_raster.append(path_follower.local_plan.get_point_t(i))
-		plot.set_data("Local Plan", [p.x for p in local_plan_raster], [p.y for p in local_plan_raster])
-		
+		try:
+			for i in np.arange(0, 1, 0.02):
+				local_plan_raster.append(path_follower.local_plan.get_point_t(i))
+			plot.set_data("Local Plan", [p.x for p in local_plan_raster], [p.y for p in local_plan_raster])
+		except:
+			pass
 		plot.update()
 		print(step)
 		# time.sleep(2)
