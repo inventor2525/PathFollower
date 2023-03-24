@@ -470,16 +470,17 @@ if __name__ == '__main__':
 	robot = Robot(
 		x=0, y=0, heading=0, #pose
 		wheel_separation=0.5, wheel_radius=0.1, #wheels
-		max_speed=0.5, max_acceleration=0.5, #speed
+		max_speed=1.5, max_acceleration=2, #speed
 		max_angular_velocity=1.5, max_angular_acceleration=40 #angular speed
 	)
 	
 	#Create a path
 	path = []
+	d = 0.5
 	path.append(Vector3(0,0,0))
-	path.append(Vector3(1,0,0))
-	path.append(Vector3(1,1,0))
-	path.append(Vector3(0,1,0))
+	path.append(Vector3(d,0,0))
+	path.append(Vector3(d,d,0))
+	path.append(Vector3(0,d,0))
 	path.append(Vector3(0,0,0))
 	# plot.set_data("Local Plan", [p.x for p in points], [p.y for p in points])
 	
@@ -503,10 +504,10 @@ if __name__ == '__main__':
 	dt = 0.1
 	#Run the simulation
 	while True:
-		#Update the robot
-		robot.update(dt)
 		#Update the path follower
 		path_follower.update(dt)
+		#Update the robot
+		robot.update(dt)
 		#Update the plot
 		plot.add_data("Robot Position", robot.position.x, robot.position.y)
 		plot.add_data("Path", path_follower.current_path_segment.start.x, path_follower.current_path_segment.start.y)
@@ -515,10 +516,10 @@ if __name__ == '__main__':
 		#plot.add_data("Robot Heading", robot.position.x + math.cos(robot.heading), robot.position.y + math.sin(robot.heading))
 		#plot.add_data("Robot Angular Velocity", robot.position.x + math.cos(robot.heading + robot.angular_velocity), robot.position.y + math.sin(robot.heading + robot.angular_velocity))
 		local_plan_raster = []
-		for i in np.arange(0, 1, 0.1):
+		for i in np.arange(0, 1, 0.02):
 			local_plan_raster.append(path_follower.local_plan.get_point_t(i))
 		plot.set_data("Local Plan", [p.x for p in local_plan_raster], [p.y for p in local_plan_raster])
 		
 		plot.update()
 		
-		time.sleep(dt)
+		#time.sleep(dt)
