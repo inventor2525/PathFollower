@@ -433,12 +433,20 @@ class Plot():
 		plt.pause(0.001)
 
 if __name__ == '__main__':
-	
 	# lp = TwoArcLocalPlan(Ray(Vector3(0,0,0), Vector3(1,0,0)), Ray(Vector3(1,1,0), Vector3(1,0,0)))
-	
-	# points = []
-	# for i in np.arange(0, 1, 0.1):
-	# 	points.append(lp.get_point_t(i))
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.9983534364339008, 0.14833575666316184, 0.0),
+			Vector3(-0.37017975759868804, 0.9289601428824472, 0.0)
+		), 
+		Ray(
+			Vector3(1.0, 0.24833575666316185, 0.0),
+			Vector3(0.0, 1.0, 0.0)
+		)
+	)
+	points = []
+	for i in np.arange(0, 1, 0.1):
+		points.append(lp.get_point_t(i))
 		
 	_R = Vector3(10.145619,8.244399,0)
 	R = Vector3(13.0006178,7.489313,0)
@@ -471,13 +479,13 @@ if __name__ == '__main__':
 	robot = Robot(
 		x=0, y=0, heading=0, #pose
 		wheel_separation=0.5, wheel_radius=0.1, #wheels
-		max_speed=1.5, max_acceleration=2, #speed
+		max_speed=.5, max_acceleration=2, #speed
 		max_angular_velocity=1.5, max_angular_acceleration=40 #angular speed
 	)
 	
 	#Create a path
 	path = []
-	d = 0.5
+	d = 1
 	path.append(Vector3(0,0,0))
 	path.append(Vector3(d,0,0))
 	path.append(Vector3(d,d,0))
@@ -502,9 +510,11 @@ if __name__ == '__main__':
 	#plot.add_line("Robot Heading", "x", "y")
 	#plot.add_line("Robot Angular Velocity", "x", "y")
 	
+	step = 0
 	dt = 0.1
 	#Run the simulation
 	while True:
+		step += 1
 		#Update the path follower
 		path_follower.update(dt)
 		#Update the robot
@@ -522,5 +532,5 @@ if __name__ == '__main__':
 		plot.set_data("Local Plan", [p.x for p in local_plan_raster], [p.y for p in local_plan_raster])
 		
 		plot.update()
-		
-		#time.sleep(dt)
+		print(step)
+		# time.sleep(2)
