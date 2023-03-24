@@ -88,8 +88,8 @@ class Robot():
 		
 		#Calculate the desired wheel rpms
 		c = 2*self.wheel_radius * math.pi
-		desired_left_rpm = (speed - angular_velocity * self.wheel_separation / 2) / c * 60
-		desired_right_rpm = (speed + angular_velocity * self.wheel_separation / 2) / c * 60
+		desired_left_rpm = (speed + angular_velocity * self.wheel_separation / 2) / c * 60
+		desired_right_rpm = (speed - angular_velocity * self.wheel_separation / 2) / c * 60
 		
 		#Set the wheel rpms
 		self.set_wheel_rpms(desired_left_rpm, desired_right_rpm)
