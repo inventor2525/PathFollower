@@ -220,7 +220,7 @@ class LocalPlan():
 		"""
 		Returns true if the plan is complete.
 		"""
-		return self.current_distance >= self.length()
+		return self.current_distance >= self.length()/4*3
 		
 	def get_point_t(self, t:float) -> Vector3:
 		"""
@@ -389,7 +389,7 @@ class PathFollower():
 			self.local_plan = self.get_new_local_plan()
 		
 		# Get the max speeds for the current local plan
-		radius = self.local_plan.get_average_turning_radius(self.robot.max_speed, dt)
+		radius = self.local_plan.get_average_turning_radius(self.robot.set_speed, dt)
 		speed, angular_velocity = robot.get_max_speeds_for_arc(radius, dt)
 		
 		# Set the desired speed and angular velocity
