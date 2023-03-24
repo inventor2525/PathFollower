@@ -66,8 +66,9 @@ class Robot():
 	
 	def get_wheel_velocities(self) -> (float, float):
 		#Calculate the wheel velocities
-		left_velocity = self.left_wheel_rpm * 2 * math.pi / 60
-		right_velocity = self.right_wheel_rpm * 2 * math.pi / 60
+		c = 2*self.wheel_radius * math.pi
+		left_velocity = self.left_wheel_rpm/60 * c
+		right_velocity = self.right_wheel_rpm/60 * c
 		return (left_velocity, right_velocity)
 		
 	def set_wheel_rpms(self, left_rpm:float, right_rpm:float) -> None:
@@ -86,9 +87,9 @@ class Robot():
 		self.set_angular_velocity = angular_velocity
 		
 		#Calculate the desired wheel rpms
-		devisor = self.wheel_radius * 60 / (2 * math.pi)
-		desired_left_rpm = (speed - angular_velocity * self.wheel_separation / 2) / devisor
-		desired_right_rpm = (speed + angular_velocity * self.wheel_separation / 2) / devisor
+		c = 2*self.wheel_radius * math.pi
+		desired_left_rpm = (speed - angular_velocity * self.wheel_separation / 2) / c * 60
+		desired_right_rpm = (speed + angular_velocity * self.wheel_separation / 2) / c * 60
 		
 		#Set the wheel rpms
 		self.set_wheel_rpms(desired_left_rpm, desired_right_rpm)
