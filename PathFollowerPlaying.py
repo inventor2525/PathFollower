@@ -52,7 +52,7 @@ class Robot():
 		#Update the position and heading
 		#speed/radius = angular velocity
 		if abs(self.angular_velocity)<.0001:
-			self.position += self.speed * dt * self.transform.forward
+			self.position += self.transform.forward * (self.speed * dt)
 		else:
 			#Calculate the radius of the circle
 			radius = self.speed / self.angular_velocity
