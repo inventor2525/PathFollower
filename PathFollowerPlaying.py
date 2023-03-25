@@ -249,9 +249,22 @@ class TwoArcLocalPlan(LocalPlan):
 	"""
 	def __init__(self, robot:Ray, target:Ray):
 		super().__init__()
+		print(f"Robot: {robot}")
+		print(f"Target: {target}")
+		
 		self.R = robot.origin
 		self.T = target.origin
 		
+		print(f"""lp = TwoArcLocalPlan(
+		Ray(
+			Vector3{robot.origin},
+			Vector3{robot.direction}
+		), 
+		Ray(
+			Vector3{target.origin},
+			Vector3{target.direction}
+		)
+	)""")
 		#Calculate the radius of the arcs and the directions to the centers of the arcs
 		self.Rp, self.Tp, r = calc_2arc_joining_path(robot, target)
 		
@@ -382,6 +395,9 @@ class PathFollower():
 					self.current_path_segment = self.CurrentPathSegment(self.path[self.current_path_segment_index], self.path[self.current_path_segment_index+1])
 			else:
 				break
+			
+		if math.isnan(self.current_path_segment.direction.x):
+			print("nan")
 		# Create a point at the look ahead distance along the current path segment, handling if the robot is behind the current path segment
 		look_ahead_point = self.current_path_segment.start + self.current_path_segment.direction * math.clamp(self.current_path_segment.distance + self.look_ahead_distance, 0, self.current_path_segment.length)
 		return TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction))
@@ -476,6 +492,49 @@ if __name__ == '__main__':
 		Ray(
 			Vector3(1.0, 0.10000058679893545, 0.0),
 			Vector3(0.0, 1.0, 0.0)
+		)
+	)
+	
+	
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.10406410021404966, 0.019179956398343023, 0.0),
+			Vector3(0.9539973643458035, 0.2998149909882096, 0.0)
+		), 
+		Ray(
+			Vector3(0.19714012373471418, 0.057249066140327785, 0.0),
+			Vector3(0.9603268728373183, 0.27887684971416504, 0.0)
+		)
+	)
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.2775529249124851, 0.06014021545405121, 0.0),
+			Vector3(0.9272698377290306, 0.3743937072627921, 0.0)
+		), 
+		Ray(
+			Vector3(0.3681060110931993, 0.1068971905693085, 0.0),
+			Vector3(0.9603268728373183, 0.27887684971416504, 0.0)
+		)
+	)
+	
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(2.6705152044506866, -3.881345361696637, 0.0),
+			Vector3(0.9787290224843935, -0.20515725808935814, 0.0)
+		), 
+		Ray(
+			Vector3(1.074226606929373, -0.4562923738114699, 0.0),
+			Vector3(0.7278699075061423, 0.6857152453803255, 0.0)
+		)
+	)
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.0978821985913021, -0.01817220482208759, 0.0),
+			Vector3(0.9728698029950091, -0.23135329351546338, 0.0)
+		), 
+		Ray(
+			Vector3(0.19519002900219762, -0.04135605493611016, 0.0),
+			Vector3(0.9782828203359017, -0.20727451226726762, 0.0)
 		)
 	)
 	points = []
@@ -574,8 +633,19 @@ if __name__ == '__main__':
 		#plot.add_data("Robot Angular Velocity", robot.position.x + math.cos(robot.heading + robot.angular_velocity), robot.position.y + math.sin(robot.heading + robot.angular_velocity))
 		local_plan_raster = []
 		try:
+			p0 = None
+			d0 = None
 			for i in np.arange(0, 1, 0.02):
-				local_plan_raster.append(path_follower.local_plan.get_point_t(i))
+				rp = path_follower.local_plan.get_point_t(i)
+				
+				if p0 is not None:
+					d1 = Vector3.distance(p0,rp)
+					if d0 is not None and abs(d0-d1)>1.5*d0:
+						print("ERROR! Discontinuity detected")
+					d0 = d1
+				
+				local_plan_raster.append(rp)
+				p0 = rp
 			plot.set_data("Local Plan", [p.x for p in local_plan_raster], [p.y for p in local_plan_raster])
 		except:
 			pass
