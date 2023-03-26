@@ -136,7 +136,7 @@ class Robot():
 		a_vel = av_range.overlapping(speed_range_in_av).clamp( speed*ratio )
 		return (speed, a_vel)
 		
-def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, float]:
+def calc_2arc_joining_path(robot:Ray, target:Ray, left_first=True) -> Tuple[Vector3, Vector3, float]:
 	"""
 	Finds 2 arcs who's radii are equal and that are tangent to eachother, where one arc
 	is tangent to the robot's heading, and the other is tangent to the target ray. The
@@ -161,19 +161,11 @@ def calc_2arc_joining_path(robot:Ray, target:Ray) -> Tuple[Vector3, Vector3, flo
 	#Calculate a perpendicular direction to the target ray
 	target_perpendicular = Vector3.cross(target.direction, Vector3.up)
 	
-	#Flip them such that the one furthest from their intersection turns away from the other
-	p_i = Ray(robot.origin, robot_perpendicular).skew_point(Ray(target.origin, target_perpendicular))
-	
-	if Vector3.dot(p_i - robot.origin, robot_perpendicular) < 0:
+	if left_first:
 		robot_perpendicular = -robot_perpendicular
-	
-	if Vector3.dot(p_i - target.origin, target_perpendicular) > 0:
+	else:
 		target_perpendicular = -target_perpendicular
-	
-	if Vector3.angle(robot.direction, target.direction) < 0.001:
-		if Vector3.dot(robot_perpendicular, target_perpendicular) > 0:
-			target_perpendicular = -target_perpendicular
-	
+		
 	q, w, _ = target_perpendicular #Tp
 	a, s, _ = robot_perpendicular  #Rp
 	z, x, _ = target.origin        #T
@@ -247,7 +239,7 @@ class TwoArcLocalPlan(LocalPlan):
 	Note: This plan does not work for turning arround. Any plan that involves turning
 	more than 90 degrees will not work.
 	"""
-	def __init__(self, robot:Ray, target:Ray):
+	def __init__(self, robot:Ray, target:Ray, left_first=True):
 		super().__init__()
 		print(f"Robot: {robot}")
 		print(f"Target: {target}")
@@ -266,7 +258,7 @@ class TwoArcLocalPlan(LocalPlan):
 		)
 	)""")
 		#Calculate the radius of the arcs and the directions to the centers of the arcs
-		self.Rp, self.Tp, r = calc_2arc_joining_path(robot, target)
+		self.Rp, self.Tp, r = calc_2arc_joining_path(robot, target, left_first=left_first)
 		
 		#Calculate the center of the first arc
 		self.Rc = robot.origin + self.Rp*r
@@ -400,8 +392,14 @@ class PathFollower():
 			print("nan")
 		# Create a point at the look ahead distance along the current path segment, handling if the robot is behind the current path segment
 		look_ahead_point = self.current_path_segment.start + self.current_path_segment.direction * math.clamp(self.current_path_segment.distance + self.look_ahead_distance, 0, self.current_path_segment.length)
-		return TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction))
-	
+		
+		plan1 = TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction), True)
+		plan2 = TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction), False)
+		
+		if plan1.total_distance < plan2.total_distance:
+			return plan1
+		return plan2
+				
 	def update(self, dt:float) -> None:
 		if self.local_plan == None:
 			self.local_plan = self.get_new_local_plan()
