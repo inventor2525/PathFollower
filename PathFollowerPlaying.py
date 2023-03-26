@@ -631,8 +631,8 @@ if __name__ == '__main__':
 	d0 = Vector3(1,0,0)
 	for i in range(0,100):
 		d1 = Quaternion.from_angle_axis(random.uniform(-math.pi/2,math.pi/2), Vector3.up) * d0
-		d = random.uniform(0.1*d, d)
-		p1 = p0 + d1 * d
+		rd = random.uniform(0.1*d, d)
+		p1 = p0 + d1 * rd
 		path.append(p1)
 		p0 = p1
 		d0 = d1
