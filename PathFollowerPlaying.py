@@ -184,7 +184,7 @@ def calc_2arc_joining_path(robot:Ray, target:Ray, left_first=True) -> Tuple[Vect
 		if pi_2_A < 0.001:
 			#The robot is already pointing at the target, so just go straight
 			#to the target
-			return robot_perpendicular, target_perpendicular, 100000 #100km radius
+			return robot_perpendicular, target_perpendicular, 1000 #1km radius
 		A = math.pi/2 - pi_2_A
 		C = math.pi - 2*A
 		radius = c*math.sin(A) / math.sin(C)
@@ -271,11 +271,11 @@ class TwoArcLocalPlan(LocalPlan):
 		
 		#Calculate how far the robot should move along the first arc
 		circomference = 2*math.pi*r
-		self.sweep1 = Vector3.angle(-self.Rp, (self.M-self.Rc).normalized)
+		self.sweep1 = Vector3.signed_angle2(-self.Rp, (self.M-self.Rc).normalized, Vector3.up if left_first else Vector3.down)
 		self.distance1 = self.sweep1 * circomference / (2*math.pi)
 		
 		#Calculate how far the robot should move along the second arc
-		self.sweep2 = Vector3.angle(-self.Tp, (self.M-self.Tc).normalized)
+		self.sweep2 = Vector3.signed_angle2(-self.Tp, (self.M-self.Tc).normalized, Vector3.up if left_first else Vector3.down)
 		self.distance2 = self.sweep2 * circomference / (2*math.pi)
 		
 		#Find the signed radii of the arc radii (positive is clockwise, negative is counter-clockwise)
@@ -284,6 +284,15 @@ class TwoArcLocalPlan(LocalPlan):
 		
 		#The total distance the robot will have to travel to follow the plan
 		self.total_distance = self.distance1 + self.distance2
+	
+	@classmethod
+	def shortest_path(cls, robot:Ray, target:Ray) -> 'TwoArcLocalPlan':
+		"""
+		Returns the shortest path between the robot and the target.
+		"""
+		plan1 = cls(robot, target)
+		plan2 = cls(robot, target, left_first=False)
+		return plan1 if plan1.length() < plan2.length() else plan2
 	
 	def length(self) -> float:
 		return self.total_distance
@@ -352,7 +361,11 @@ class PathFollower():
 		
 		self.local_plan : LocalPlan = None
 		
+		self.steps_since_last_local_plan = 0
+		
 	def get_new_local_plan(self) -> LocalPlan:
+		self.steps_since_last_local_plan = 0
+		
 		if self.current_path_segment_index >= len(self.path)-1:	#If there are no more path segments
 			return None
 		#Update the current path segment
@@ -399,12 +412,7 @@ class PathFollower():
 		# Create a point at the look ahead distance along the current path segment, handling if the robot is behind the current path segment
 		look_ahead_point = self.current_path_segment.start + self.current_path_segment.direction * math.clamp(self.current_path_segment.distance + self.look_ahead_distance, 0, self.current_path_segment.length)
 		
-		plan1 = TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction), True)
-		plan2 = TwoArcLocalPlan(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction), False)
-		
-		if plan1.total_distance < plan2.total_distance:
-			return plan1
-		return plan2
+		return TwoArcLocalPlan.shortest_path(self.robot.pose, Ray(look_ahead_point, self.current_path_segment.direction))
 				
 	def update(self, dt:float) -> None:
 		if self.local_plan == None:
@@ -415,7 +423,7 @@ class PathFollower():
 				
 		#Check if we need a new local plan:
 		self.local_plan.add_distance(self.robot.set_speed * dt)
-		if self.local_plan.is_done():
+		if self.local_plan.is_done() or self.steps_since_last_local_plan > 2:
 			self.local_plan = self.get_new_local_plan()
 		
 		if self.local_plan == None:
@@ -428,6 +436,8 @@ class PathFollower():
 		
 		# Set the desired speed and angular velocity
 		self.robot.set_desired_speed(speed, angular_velocity)
+		
+		self.steps_since_last_local_plan += 1
 		
 
 # A plot for 2D data
