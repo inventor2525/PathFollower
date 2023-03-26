@@ -353,23 +353,28 @@ class PathFollower():
 		self.local_plan : LocalPlan = None
 		
 	def get_new_local_plan(self) -> LocalPlan:
+		if self.current_path_segment_index >= len(self.path)-1:	#If there are no more path segments
+			return None
 		#Update the current path segment
 		if self.current_path_segment == None:
 			self.current_path_segment = self.CurrentPathSegment(self.path[self.current_path_segment_index], self.path[self.current_path_segment_index+1])
 		while True:
-			#Find the closest point on the current path segment
-			ray = Ray(self.current_path_segment.start, self.current_path_segment.direction)
-			closest_point = ray.closest_point(self.robot.position)
-			#Find the distance to the closest point
-			distance = Vector3.distance(closest_point, self.current_path_segment.start)
-			#Update the current path segment
-			self.current_path_segment.distance = distance
-			if Vector3.dot(closest_point - self.current_path_segment.start, self.current_path_segment.direction) < 0:
-				self.current_path_segment.remaining_distance = self.current_path_segment.length + distance
+			if self.current_path_segment.length > 0:
+				#Find the closest point on the current path segment
+				ray = Ray(self.current_path_segment.start, self.current_path_segment.direction)
+				closest_point = ray.closest_point(self.robot.position)
+				#Find the distance to the closest point
+				distance = Vector3.distance(closest_point, self.current_path_segment.start)
+				#Update the current path segment
+				self.current_path_segment.distance = distance
+				if Vector3.dot(closest_point - self.current_path_segment.start, self.current_path_segment.direction) < 0:
+					self.current_path_segment.remaining_distance = self.current_path_segment.length + distance
+				else:
+					self.current_path_segment.remaining_distance = self.current_path_segment.length - distance
+				#Check if the current path segment is done
+				if self.current_path_segment.remaining_distance < self.look_ahead_distance:
+					self.current_path_segment.done = True
 			else:
-				self.current_path_segment.remaining_distance = self.current_path_segment.length - distance
-			#Check if the current path segment is done
-			if self.current_path_segment.remaining_distance < self.look_ahead_distance:
 				self.current_path_segment.done = True
 			#Check if the current path segment is done
 			if self.current_path_segment.done:
@@ -388,8 +393,9 @@ class PathFollower():
 			else:
 				break
 			
-		if math.isnan(self.current_path_segment.direction.x):
-			print("nan")
+		if self.current_path_segment.length == 0:
+			return None
+		
 		# Create a point at the look ahead distance along the current path segment, handling if the robot is behind the current path segment
 		look_ahead_point = self.current_path_segment.start + self.current_path_segment.direction * math.clamp(self.current_path_segment.distance + self.look_ahead_distance, 0, self.current_path_segment.length)
 		
@@ -462,6 +468,7 @@ class Plot():
 
 if __name__ == '__main__':
 	# lp = TwoArcLocalPlan(Ray(Vector3(0,0,0), Vector3(1,0,0)), Ray(Vector3(1,1,0), Vector3(1,0,0)))
+	#These following cases have drawings in the cad file to check the math of, but they were written before :
 	lp = TwoArcLocalPlan(
 		Ray(
 			Vector3(0.9983534364339008, 0.14833575666316184, 0.0),
@@ -545,6 +552,30 @@ if __name__ == '__main__':
 			Vector3(0.3258452514703535, 0.7881397802886814, 0.0),
 			Vector3(0.8799880384505118, 0.47499584438605413, 0.0)
 		)
+	)
+	
+	#Not in cad file:
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.4718680492853997, 0.32264860610453283, 0.0),
+			Vector3(0.8222193152059611, 0.5691707983569082, 0.0)
+		), 
+		Ray(
+			Vector3(0.5540753243831122, 0.37958916119846386, 0.0),
+			Vector3(0.8249705835842306, 0.5651756684613148, 0.0)
+		),
+		False
+	)
+	lp = TwoArcLocalPlan(
+		Ray(
+			Vector3(0.4718680492853997, 0.32264860610453283, 0.0),
+			Vector3(0.8222193152059611, 0.5691707983569082, 0.0)
+		), 
+		Ray(
+			Vector3(0.5540753243831122, 0.37958916119846386, 0.0),
+			Vector3(0.8249705835842306, 0.5651756684613148, 0.0)
+		),
+		True
 	)
 	points = []
 	for i in np.arange(0, 1, 0.1):
