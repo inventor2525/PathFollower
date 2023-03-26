@@ -447,8 +447,8 @@ class Plot():
 		self.figure = plt.figure()
 		self.axes = self.figure.add_subplot(111)
 		self.axes.set_aspect('equal')
-		self.axes.set_xlim(-5, 5)
-		self.axes.set_ylim(-5, 5)
+		self.axes.set_xlim(-.1, 1.5)
+		self.axes.set_ylim(-.1, 1.5)
 		self.axes.grid()
 	def add_line(self, name:str, x_label:str, y_label:str) -> None:
 		self.lines.append({"name":name, "x_label":x_label, "y_label":y_label, "x_data":[], "y_data":[]})
@@ -475,61 +475,8 @@ class Plot():
 			self.axes.plot(line["x_data"], line["y_data"], label=line["name"])
 		self.axes.legend()
 		plt.pause(0.001)
-def angle_between(v1:Vector3, v2:Vector3, axis:Vector3):
-	# angle = Vector3.angle(v1, v2)
-	# cross = Vector3.cross(v1, v2)
-	# signed_angle = angle if Vector3.dot(axis, cross) >= 0 else -angle
-	
-	axis = self.cross(other)
-	cos_theta = self.dot(other) / (self.magnitude() * other.magnitude())
-	theta = math.acos(cos_theta)
-	signed_theta = math.copysign(theta, axis.dot(sweep_dir))
-	if axis.dot(sweep_dir) < 0:
-		signed_theta = 2 * math.pi - signed_theta
-	return signed_theta
-	
+
 if __name__ == '__main__':
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(1,0,0),
-		Vector3(0,0,1)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(1,0,0),
-		Vector3(0,0,-1)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(0,1,0),
-		Vector3(0,0,1)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(0,1,0),
-		Vector3(0,0,-1)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(0,1,0),
-		Vector3(0,1,0)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(0,1,0),
-		Vector3(0,-1,0)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(0,-1,0),
-		Vector3(0,0,1)
-	))
-	print(Vector3.signed_angle2(
-		Vector3(1,0,0),
-		Vector3(-1,0,0),
-		Vector3(0,0,1)
-	))
-		
 	# lp = TwoArcLocalPlan(Ray(Vector3(0,0,0), Vector3(1,0,0)), Ray(Vector3(1,1,0), Vector3(1,0,0)))
 	#These following cases have drawings in the cad file to check the math of, but they were written before :
 	lp = TwoArcLocalPlan(
@@ -640,142 +587,6 @@ if __name__ == '__main__':
 		),
 		True
 	)
-	lp = TwoArcLocalPlan(
-		Ray(
-			Vector3(2.4193339830231135, -2.72593815962659, 0.0),
-			Vector3(0.7697296487074529, 0.6383700086162424, 0.0)
-		), 
-		Ray(
-			Vector3(2.482533341384358, -2.6453416613406584, 0.0),
-			Vector3(0.7725421949236055, 0.6349634297049065, 0.0)
-		)
-	)
-	lp = TwoArcLocalPlan(
-		Ray(
-			Vector3(11.090500959277664, -3.686281619582773, 0.0),
-			Vector3(0.9582173033542007, 0.2860412549836187, 0.0)
-		), 
-		Ray(
-			Vector3(11.18632414881437, -3.6576095283029857, 0.0),
-			Vector3(0.9636865413652821, 0.26703604623986715, 0.0)
-		)
-	)
-	lp = TwoArcLocalPlan.shortest_path(
-		Ray(
-			Vector3(0.5988341120034467, 1.1280564663886095, 0.0),
-			Vector3(-0.5338551795783508, 0.8455759263586959, 0.0)
-		), 
-		Ray(
-			Vector3(0.5272726936316053, 1.2006374570801568, 0.0),
-			Vector3(-0.5510186667916475, 0.8344929171941218, 0.0)
-		)
-	)
-	
-	
-	
-	
-	
-	
-	
-	#these are also in cad file:
-	lpr = TwoArcLocalPlan(
-		Ray(
-			Vector3(0.5988341120034467, 1.1280564663886095, 0.0),
-			Vector3(-0.5338551795783508, 0.8455759263586959, 0.0)
-		), 
-		Ray(
-			Vector3(0.5272726936316053, 1.2006374570801568, 0.0),
-			Vector3(-0.5510186667916475, 0.8344929171941218, 0.0)
-		),
-		False
-	)
-	lpl = TwoArcLocalPlan(
-		Ray(
-			Vector3(0.5988341120034467, 1.1280564663886095, 0.0),
-			Vector3(-0.5338551795783508, 0.8455759263586959, 0.0)
-		), 
-		Ray(
-			Vector3(0.5272726936316053, 1.2006374570801568, 0.0),
-			Vector3(-0.5510186667916475, 0.8344929171941218, 0.0)
-		),
-		True
-	)
-	lps = TwoArcLocalPlan.shortest_path(
-		Ray(
-			Vector3(0.6988341120034467, 1.2280564663886095, 0.0),
-			Vector3(-0.5338551795783508, 0.8455759263586959, 0.0)
-		), 
-		Ray(
-			Vector3(0.6272726936316053, 1.3006374570801568, 0.0),
-			Vector3(-0.5510186667916475, 0.8344929171941218, 0.0)
-		)
-	)
-	
-	
-	
-	lpl = TwoArcLocalPlan(
-		Ray(
-			Vector3(-51.515083650416976, -13.165506257835073, 0.0),
-			Vector3(-0.9480599722179508, 0.3180916362907056, 0.0)
-		), 
-		Ray(
-			Vector3(-1.4427263743682237, -4.628099374061196, 0.0),
-			Vector3(0.13928831413790332, 0.9902518697506311, 0.0)
-		),
-		True
-	)
-	lpr = TwoArcLocalPlan(
-		Ray(
-			Vector3(-51.515083650416976, -13.165506257835073, 0.0),
-			Vector3(-0.9480599722179508, 0.3180916362907056, 0.0)
-		), 
-		Ray(
-			Vector3(-1.4427263743682237, -4.628099374061196, 0.0),
-			Vector3(0.13928831413790332, 0.9902518697506311, 0.0)
-		),
-		False
-	)
-	lps = TwoArcLocalPlan.shortest_path(
-		Ray(
-			Vector3(-51.515083650416976, -13.165506257835073, 0.0),
-			Vector3(-0.9480599722179508, 0.3180916362907056, 0.0)
-		), 
-		Ray(
-			Vector3(-1.4427263743682237, -4.628099374061196, 0.0),
-			Vector3(0.13928831413790332, 0.9902518697506311, 0.0)
-		)
-	)
-	
-	
-	#still getting discontinuity occasionally:
-	lp = TwoArcLocalPlan.shortest_path(
-		Ray(
-			Vector3(0.90891381694112, 4.459643768424421, 0.0),
-			Vector3(-0.10097047952448968, 0.9948894221292108, 0.0)
-		), 
-		Ray(
-			Vector3(0.8475746170611068, 4.655140736417017, 0.0),
-			Vector3(-0.0849264157957083, 0.9963872258816321, 0.0)
-		)
-	)
-	
-	pointsl = []
-	pointsr = []
-	pointss = []
-	for i in np.arange(0, 1, 0.1):
-		pointss.append(lps.get_point_t(i))
-		pointsr.append(lpr.get_point_t(i))
-		pointsl.append(lpl.get_point_t(i))
-	plot = Plot()
-	plot.add_line("Left First", "x", "y")
-	plot.add_line("Right First", "x", "y")
-	plot.add_line("Shortest", "x", "y")
-	plot.set_data("Left First", [p.x for p in pointsl], [p.y for p in pointsl])
-	plot.set_data("Right First", [p.x for p in pointsr], [p.y for p in pointsr])
-	plot.set_data("Shortest", [p.x for p in pointss], [p.y for p in pointss])
-	plot.update()
-	
-	
 	points = []
 	for i in np.arange(0, 1, 0.1):
 		points.append(lp.get_point_t(i))
@@ -811,8 +622,8 @@ if __name__ == '__main__':
 	robot = Robot(
 		x=0, y=0, heading=0, #pose
 		wheel_separation=0.5, wheel_radius=0.1, #wheels
-		max_speed=1.5, max_acceleration=1.5, #speed
-		max_angular_velocity=6, max_angular_acceleration=4 #angular speed
+		max_speed=.5, max_acceleration=2, #speed
+		max_angular_velocity=1.5, max_angular_acceleration=40 #angular speed
 	)
 	
 	#Create a path
@@ -840,7 +651,7 @@ if __name__ == '__main__':
 	#Create a path follower
 	#Setup the path follower with the robot, path, look ahead distance, max velocity, 
 	# max acceleration, max angular velocity, max angular acceleration
-	path_follower = PathFollower(robot, path, 1)
+	path_follower = PathFollower(robot, path, 0.1)
 	
 	#path_follower.get_local_path_plan(robot, Ray(Vector3(1,1,0), Vector3(1,.2,0).normalized))
 	
