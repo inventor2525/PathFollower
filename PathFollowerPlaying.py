@@ -138,7 +138,7 @@ class Robot():
 		
 def calc_2arc_joining_path(robot:Ray, target:Ray, left_first=True) -> Tuple[Vector3, Vector3, float]:
 	"""
-	Finds 2 arcs who's radii are equal and that are tangent to eachother, where one arc
+	Finds 2 arcs who's radii are equal and that are tangent to each other, where one arc
 	is tangent to the robot's heading, and the other is tangent to the target ray. The
 	center of the first arc is on the line perpendicular to the robot's heading that
 	passes through the robot's position. The center of the second arc is on the line
@@ -236,7 +236,7 @@ class TwoArcLocalPlan(LocalPlan):
 	"""
 	A local plan that uses 2 arcs to join the robot's current pose to the target pose.
 	
-	Note: This plan does not work for turning arround. Any plan that involves turning
+	Note: This plan does not work for turning around. Any plan that involves turning
 	more than 90 degrees will not work.
 	"""
 	def __init__(self, robot:Ray, target:Ray, left_first=True):
@@ -270,13 +270,13 @@ class TwoArcLocalPlan(LocalPlan):
 		self.M = (self.Rc + self.Tc)/2
 		
 		#Calculate how far the robot should move along the first arc
-		circomference = 2*math.pi*r
+		circumference = 2*math.pi*r
 		self.sweep1 = Vector3.signed_angle2(-self.Rp, (self.M-self.Rc).normalized, Vector3.up if left_first else Vector3.down)
-		self.distance1 = self.sweep1 * circomference / (2*math.pi)
+		self.distance1 = self.sweep1 * circumference / (2*math.pi)
 		
 		#Calculate how far the robot should move along the second arc
 		self.sweep2 = Vector3.signed_angle2(-self.Tp, (self.M-self.Tc).normalized, Vector3.up if left_first else Vector3.down)
-		self.distance2 = self.sweep2 * circomference / (2*math.pi)
+		self.distance2 = self.sweep2 * circumference / (2*math.pi)
 		
 		#Find the signed radii of the arc radii (positive is clockwise, negative is counter-clockwise)
 		self.radius1 = r if Vector3.dot(self.Rp, Vector3.cross(robot.direction, Vector3.up)) > 0 else -r

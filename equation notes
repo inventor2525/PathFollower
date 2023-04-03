@@ -1,7 +1,7 @@
 #Equation notes for following a curved path composed of 2 tangent arcs toward a target. This was the effort that went into finding the radius of those arcs
 ~2023-03-11 to 2023-03-13 -- Theres a cad file to play with too
 
-#Note: All multiplies are explicet (A*B is not to be writen as AB)
+#Note: All multiplies are explicit (A*B is not to be written as AB)
 r = radius
 
 #Directions
@@ -74,7 +74,7 @@ Ra = ∠RcRM = acos(MRc*)
 
 # if I knew RM I would have r
 
-# if a turn arround is needed, this math is pointless, in that case it is a single arc and a line
+# if a turn around is needed, this math is pointless, in that case it is a single arc and a line
 
 
 M = (Rc+Tc)/2
