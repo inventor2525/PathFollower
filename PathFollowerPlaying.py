@@ -1,4 +1,4 @@
-from UnitAlg import Vector3, Quaternion, Transform, Ray, CoordinateFrame, Circle
+from UnitAlg import Vector3, Quaternion, Transform, Ray, CoordinateFrame
 from UnitAlg.Range import Range
 CoordinateFrame.set(CoordinateFrame.ROS)
 
@@ -443,8 +443,8 @@ class Plot():
 		self.figure = plt.figure()
 		self.axes = self.figure.add_subplot(111)
 		self.axes.set_aspect('equal')
-		self.axes.set_xlim(-.1, 1.5)
-		self.axes.set_ylim(-.1, 1.5)
+		self.axes.set_xlim(-1.5, 1.5)
+		self.axes.set_ylim(-1.5, 1.5)
 		self.axes.grid()
 	def add_line(self, name:str, x_label:str, y_label:str) -> None:
 		self.lines.append({"name":name, "x_label":x_label, "y_label":y_label, "x_data":[], "y_data":[]})
