@@ -317,10 +317,6 @@ class TwoArcLocalPlan(LocalPlan):
 				Vector3.up if self.radius2>=0 else Vector3.down
 			) * (self.T-self.Tc) + self.Tc
 	
-	#get distance along arc 1:
-	def get_arc1_distance(self, point:Vector3) -> float:
-		return Vector3.angle(-Rp, (point-Rc).normalized) * circomference / (2*math.pi)
-	
 	#calculate the average turning radius the robot will have to follow the plan for dt more seconds
 	def get_average_turning_radius(self, speed:float, dt:float) -> float:
 		travel_distance = speed*dt
